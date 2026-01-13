@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import ImageCard from './ImageCard';
+import ImageCard from '@/components/ImageCard';
 
 interface Image {
   id: string;
@@ -18,6 +18,7 @@ export default function FeedGrid() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
+  const [likedImages, setLikedImages] = useState<Set<string>>(new Set());
 
   const fetchImages = useCallback(async (pageNum: number) => {
     try {
@@ -46,25 +47,42 @@ export default function FeedGrid() {
     fetchImages(1);
   }, [fetchImages]);
 
-  const handleLike = async (id: string) => {
+  const handleLike = async (id: string, isLiked: boolean) => {
+    const action = isLiked ? 'unlike' : 'like';
+    
     try {
       const response = await fetch(`/api/like/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to like image');
+        throw new Error(data.error || 'Failed to update like');
       }
 
+      // Update liked images set
+      setLikedImages((prev) => {
+        const newSet = new Set(prev);
+        if (action === 'like') {
+          newSet.add(id);
+        } else {
+          newSet.delete(id);
+        }
+        return newSet;
+      });
+
+      // Update hearts count
       setImages((prev) =>
         prev.map((img) =>
-          img.id === id ? { ...img, hearts: img.hearts + 1 } : img
+          img.id === id
+            ? { ...img, hearts: img.hearts + (action === 'like' ? 1 : -1) }
+            : img
         )
       );
     } catch (err) {
-      console.error('Error liking image:', err);
+      console.error('Error updating like:', err);
       throw err;
     }
   };
@@ -110,6 +128,7 @@ export default function FeedGrid() {
             key={image.id}
             {...image}
             onLike={handleLike}
+            isLiked={likedImages.has(image.id)}
           />
         ))}
       </div>

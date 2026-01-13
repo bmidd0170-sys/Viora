@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import Navigation from '../components/Navigation';
-import ImageDisplay from '../components/ImageDisplay';
-import PromptInput from '../components/PromptInput';
+import Navigation from '@/components/Navigation';
+import ImageDisplay from '@/components/ImageDisplay';
+import PromptInput from '@/components/PromptInput';
 
 export default function GeneratePage() {
   const [prompt, setPrompt] = useState('');

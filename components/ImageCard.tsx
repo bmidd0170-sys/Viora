@@ -9,7 +9,8 @@ interface ImageCardProps {
   prompt: string;
   hearts: number;
   createdAt: string;
-  onLike: (id: string) => Promise<void>;
+  isLiked: boolean;
+  onLike: (id: string, isLiked: boolean) => Promise<void>;
 }
 
 export default function ImageCard({
@@ -18,20 +19,17 @@ export default function ImageCard({
   prompt,
   hearts,
   createdAt,
+  isLiked,
   onLike,
 }: ImageCardProps) {
-  const [liked, setLiked] = useState(false);
-  const [heartCount, setHeartCount] = useState(hearts);
   const [liking, setLiking] = useState(false);
 
   const handleLike = async () => {
-    if (liked || liking) return;
+    if (liking) return;
 
     setLiking(true);
     try {
-      await onLike(id);
-      setLiked(true);
-      setHeartCount((prev) => prev + 1);
+      await onLike(id, isLiked);
     } finally {
       setLiking(false);
     }
@@ -76,11 +74,11 @@ export default function ImageCard({
 
           <button
             onClick={handleLike}
-            disabled={liked || liking}
+            disabled={liking}
             className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
           >
-            <span className={liked ? 'text-red-500' : ''}>♥</span>
-            {heartCount}
+            <span className={isLiked ? 'text-red-500' : ''}>♥</span>
+            {hearts}
           </button>
         </div>
       </div>

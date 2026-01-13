@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { emitImagePublished } from '@/lib/events';
 
 function isValidUrl(url: string): boolean {
   try {
@@ -52,6 +53,15 @@ export async function POST(request: NextRequest) {
     // Persist to DB (defaults for hearts, createdAt are applied by schema)
     const created = await prisma.publishedImage.create({
       data: { prompt, imageUrl },
+    });
+
+    // Emit event to notify connected clients
+    emitImagePublished({
+      id: created.id,
+      prompt: created.prompt,
+      imageUrl: created.imageUrl,
+      hearts: created.hearts,
+      createdAt: created.createdAt,
     });
 
     return NextResponse.json(created, { status: 201 });
